@@ -64,62 +64,18 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
 
-  # Traefik 2 - Reverse Proxy
-  # Touch (create empty files) traefik.yml, config.yml and acme.json. Set acme.json permissions to 600.
-  # touch $DOCKERDIR/traefik/data/traefik.yml
-  # touch $DOCKERDIR/traefik/data/config.yml
-  # touch $DOCKERDIR/traefik/data/acme.json
-  # chmod 600 $DOCKERDIR/traefik/data/acme.json
-
-  ########################### Traefik
-  traefik:
-    image: traefik:latest
-    container_name: traefik
-    <<: *common-keys # See EXTENSION FIELDS at the top
-    healthcheck:
-      test: ["CMD", "traefik", "healthcheck", "--ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
+  ########################### Nginx Proxy Manager
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
     ports:
-      - 80:80
-      - 443:443
-    environment:
-      - CF_API_EMAIL=$CLOUDFLARE_EMAIL
-      - CF_API_KEY=$CLOUDFLARE_API_KEY
-    extra_hosts:
-      - host.docker.internal:172.17.0.1 # This is needed for Home Assistant      
+      # These ports are in format <host-port>:<container-port>
+      - '80:80' # Public HTTP Port
+      - '443:443' # Public HTTPS Port
+      - '81:81' # Admin Web Port
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - $DOCKERDIR/traefik/traefik.yml:/traefik.yml:ro
-      - $DOCKERDIR/traefik/acme.json:/acme.json
-      - $DOCKERDIR/traefik/config.yml:/config.yml:ro
-    labels:
-      - "traefik.enable=true"
-      # HTTP-to-HTTPS Redirect
-      - "traefik.http.routers.http-catchall.entrypoints=http"
-      - "traefik.http.routers.http-catchall.rule=HostRegexp(`{host:.+}`)"
-      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      # HTTP Routers      
-      - "traefik.http.routers.traefik.entrypoints=http"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.local.$DOMAINNAME`)"
-    #  - "traefik.http.middlewares.traefik-auth.basicauth.users=$BASIC_AUTH_USER:$BASIC_AUTH_PASS"
-      - "traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.routers.traefik.middlewares=traefik-https-redirect"
-      - "traefik.http.routers.traefik-secure.entrypoints=https"
-      - "traefik.http.routers.traefik-secure.rule=Host(`traefik.local.$DOMAINNAME`)"
-    #  - "traefik.http.routers.traefik-secure.middlewares=traefik-auth"
-      - "traefik.http.routers.traefik-secure.tls=true"
-      - "traefik.http.routers.traefik-secure.tls.certresolver=cloudflare"
-      - "traefik.http.routers.traefik-secure.tls.domains[0].main=local.$DOMAINNAME"
-      - "traefik.http.routers.traefik-secure.tls.domains[0].sans=*.local.$DOMAINNAME"
-    
-      ## Services - API
-      - "traefik.http.routers.traefik-secure.service=api@internal"
+      - $DOCKERDIR/npm/data:/data
+      - $DOCKERDIR/npm/letsencrypt:/etc/letsencrypt
 
 ######################### NETWORKS
 networks:
