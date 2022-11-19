@@ -117,8 +117,7 @@ services:
       - "traefik.http.routers.traefik-secure.tls.certresolver=cloudflare"
       - "traefik.http.routers.traefik-secure.tls.domains[0].main=local.$DOMAINNAME"
       - "traefik.http.routers.traefik-secure.tls.domains[0].sans=*.local.$DOMAINNAME"
-      - "traefik.http.routers.traefik-secure.tls.domains[0].main=$DOMAINNAME"
-      - "traefik.http.routers.traefik-secure.tls.domains[0].sans=*.$DOMAINNAME"      
+    
       ## Services - API
       - "traefik.http.routers.traefik-secure.service=api@internal"
 
