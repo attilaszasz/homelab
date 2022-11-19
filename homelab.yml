@@ -4,7 +4,7 @@ version: '3.9'
 
 services:
 
-  ####################### AUTOHEAL
+  ########################### AUTOHEAL
   autoheal:
     image: willfarrell/autoheal:latest
     tty: true
@@ -14,6 +14,14 @@ services:
       - AUTOHEAL_CONTAINER_LABEL=all
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+
+  ########################### WatchTower
+  watchtower:
+    container_name: watchtower
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
 
 ######################### NETWORKS
 networks:
