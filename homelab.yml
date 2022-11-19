@@ -1,5 +1,44 @@
 version: '3.9'
 
+## VARIABLES
+# $USER
+# $TZ
+# $PUID
+# $PGID
+# $USERDIR
+# $DOCKERDIR
+# $DOWNLOAD_DIR
+# $DOMAINNAME
+# $OPENVPN_PROVIDER
+# $OPENVPN_USERNAME
+# $OPENVPN_PASSWORD
+# $CLOUDFLARE_EMAIL
+# $CLOUDFLARE_API_KEY
+# $BASIC_AUTH_USER
+# $BASIC_AUTH_PASS
+# $EUFY_USER
+# $EUFY_PASS
+
+########################### EXTENSION FIELDS
+# Helps eliminate repetition of sections
+
+# Common environment values
+x-environment: &default-tz-puid-pgid
+  TZ: $TZ
+  PUID: $PUID
+  PGID: $PGID
+
+# Proxy Network and Security
+x-network-and-security: &network-and-security
+  networks:
+    - proxy
+  security_opt:
+    - no-new-privileges:true
+
+# Keys common to some of the dependent services/apps
+x-common-keys-apps: &common-keys
+  <<: *network-and-security
+  restart: unless-stopped
 ######################### SERVICES
 
 services:
