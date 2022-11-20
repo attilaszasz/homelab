@@ -7,6 +7,7 @@ version: '3.9'
 # $PGID
 # $USERDIR
 # $DOCKERDIR
+# $STORAGEDIR
 # $DOWNLOAD_DIR
 # $DOMAINNAME
 # $OPENVPN_PROVIDER
@@ -115,7 +116,40 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
-      
+
+  ########################### Transmission OpenVPN
+  transmission-openvpn:
+    container_name: transmission
+    cap_add:
+        - NET_ADMIN
+    volumes:
+        - '$DOCKERDIR/transmission/:/data'
+        - '$STORAGEDIR/downloads/:/data/completed'
+        - '$STORAGEDIR/downloads/:/downloads'
+    environment:
+      <<: *default-tz-puid-pgid
+      OPENVPN_PROVIDER: $OPENVPN_PROVIDER
+      OPENVPN_USERNAME: $OPENVPN_USERNAME
+      OPENVPN_PASSWORD: $OPENVPN_PASSWORD
+      NORDVPN_COUNTRY: RO
+      NORDVPN_CATEGORY: Europe
+      NORDVPN_PROTOCOL: tcp
+      LOCAL_NETWORK: 192.168.0.0/16
+      TRANSMISSION_HOME: /data/transmission-home
+      TRANSMISSION_DOWNLOAD_DIR: /downloads
+      TRANSMISSION_WATCH_DIR: /data/watch
+      TRANSMISSION_INCOMPLETE_DIR: /downloads/incomplete
+      TRANSMISSION_RATIO_LIMIT_ENABLED: "true"
+      TRANSMISSION_RATIO_LIMIT: 1
+      TRANSMISSION_IDLE_SEEDING_LIMIT_ENABLED: "true"
+      TRANSMISSION_IDLE_SEEDING_LIMIT: 1
+    logging:
+        driver: json-file
+        options:
+            max-size: 10m
+    <<: *common-keys # See EXTENSION FIELDS at the top
+    image: haugene/transmission-openvpn
+
 ######################### NETWORKS
 networks:
   proxy:
