@@ -103,6 +103,19 @@ services:
       # - 8600:443
     <<: *common-keys # See EXTENSION FIELDS at the top
     
+  ########################### Node Red
+  node-red:
+    image: nodered/node-red:latest
+    container_name: nodered
+    environment:
+      - TZ=$TZ
+    <<: *common-keys # See EXTENSION FIELDS at the top
+    volumes:
+      - $DOCKERDIR/node-red:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      
 ######################### NETWORKS
 networks:
   proxy:
