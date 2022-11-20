@@ -84,14 +84,14 @@ services:
     image: ghcr.io/linuxserver/heimdall
     container_name: heimdall
     environment:
-      <<: *common-keys
+      <<: *default-tz-puid-pgid
     volumes:
       - '$DOCKERDIR/heimdall:/config'
     ports:
       - 8500:80
       # - 8600:443
     <<: *common-keys # See EXTENSION FIELDS at the top
-
+    
 ######################### NETWORKS
 networks:
   proxy:
