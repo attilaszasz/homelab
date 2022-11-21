@@ -20,6 +20,7 @@ version: '3.9'
 # $BASIC_AUTH_PASS
 # $EUFY_USER
 # $EUFY_PASS
+# $LIBRESPEED_PASS
 
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
@@ -42,10 +43,25 @@ x-common-keys-apps: &common-keys
   <<: *network-and-security
   restart: unless-stopped
 
-
+  
 ######################### SERVICES
 
 services:
+
+  ########################### Nginx Proxy Manager
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx-proxy-manager
+    <<: *common-keys # See EXTENSION FIELDS at the top
+    restart: unless-stopped
+    ports:
+      # These ports are in format <host-port>:<container-port>
+      - '80:80' # Public HTTP Port
+      - '443:443' # Public HTTPS Port
+      - '81:81' # Admin Web Port
+    volumes:
+      - $DOCKERDIR/npm/data:/data
+      - $DOCKERDIR/npm/letsencrypt:/etc/letsencrypt
 
   ########################### AUTOHEAL
   autoheal:
@@ -68,31 +84,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
 
-  ########################### Nginx Proxy Manager
-  nginx-proxy-manager:
-    image: 'jc21/nginx-proxy-manager:latest'
-    container_name: nginx-proxy-manager
-    <<: *common-keys # See EXTENSION FIELDS at the top
-    restart: unless-stopped
-    ports:
-      # These ports are in format <host-port>:<container-port>
-      - '80:80' # Public HTTP Port
-      - '443:443' # Public HTTPS Port
-      - '81:81' # Admin Web Port
-    volumes:
-      - $DOCKERDIR/npm/data:/data
-      - $DOCKERDIR/npm/letsencrypt:/etc/letsencrypt
-
-  ########################### Dozzle
-  dozzle:
-    container_name: dozzle
-    image: amir20/dozzle:latest
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    # ports:
-    #   - 9999:8080
-    <<: *common-keys # See EXTENSION FIELDS at the top
-
   ########################### Heimdall  
   heimdall:
     image: ghcr.io/linuxserver/heimdall
@@ -105,7 +96,31 @@ services:
       - 8500:80
       # - 8600:443
     <<: *common-keys # See EXTENSION FIELDS at the top
+
+  ########################### LibreSpeed
+  librespeed:
+    image: linuxserver/librespeed
+    container_name: librespeed
+    environment:
+      <<: *default-tz-puid-pgid
+      PASSWORD: $LIBRESPEED_PASS
+    volumes:
+      - $DOCKERDIR/librespeed:/config
+    ports:
+      - 8383:80
+    restart: unless-stopped
     
+  ########################### Dozzle
+  dozzle:
+    container_name: dozzle
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    # ports:
+    #   - 9999:8080
+    <<: *common-keys # See EXTENSION FIELDS at the top
+
+
   ########################### Node Red
   node-red:
     image: nodered/node-red:latest
@@ -115,9 +130,17 @@ services:
     <<: *common-keys # See EXTENSION FIELDS at the top
     volumes:
       - $DOCKERDIR/node-red:/data
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=proxy"
+    # ports:
+      # - 1880:1880
+
+  ########################### Mosquitto
+  mosquitto:
+    container_name: mosquitto
+    image: eclipse-mosquitto:latest
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - $DOCKERDIR/mosquitto/:/mosquitto/
 
   ########################### Transmission OpenVPN
   transmission-openvpn:
@@ -157,4 +180,3 @@ services:
 networks:
   proxy:
     external: true
-    
