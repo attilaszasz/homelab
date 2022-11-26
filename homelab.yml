@@ -7,8 +7,8 @@ version: '3.9'
 # $PGID
 # $USERDIR
 # $DOCKERDIR
-# $STORAGEDIR
-# $DOWNLOAD_DIR
+# $MEDIADIR
+
 # $DOMAINNAME
 # $OPENVPN_PROVIDER
 # $OPENVPN_USERNAME
@@ -91,7 +91,7 @@ services:
     environment:
       <<: *default-tz-puid-pgid
     volumes:
-      - '$DOCKERDIR/heimdall:/config'
+      - $DOCKERDIR/heimdall:/config
     ports:
       - 8500:80
       # - 8600:443
@@ -151,8 +151,8 @@ services:
     volumes:
         - '$DOCKERDIR/transmission/data:/data'
         - '$DOCKERDIR/transmission/config:/config'
-        - '$STORAGEDIR/downloads/:/data/completed'
-        - '$STORAGEDIR/downloads/:/downloads'
+        - '$DOCKERDIR/transmission/downloads/:/data/completed'
+        - '$DOCKERDIR/transmission/downloads/:/downloads'
     environment:
       <<: *default-tz-puid-pgid
       OPENVPN_PROVIDER: $OPENVPN_PROVIDER
@@ -197,8 +197,8 @@ services:
       <<: *default-tz-puid-pgid
     volumes:
       - $DOCKERDIR/bazarr:/config
-      - $STORAGEDIR/media/movies:/movies
-      - $STORAGEDIR/media/tv:/tv
+      - $MEDIADIR/movies:/movies
+      - $MEDIADIR/tv:/tv
     ports:
       - 6767:6767
     <<: *common-keys # See EXTENSION FIELDS at the top
@@ -211,8 +211,8 @@ services:
       <<: *default-tz-puid-pgid
     volumes:
       - $DOCKERDIR/sonarr:/config
-      - $STORAGEDIR/media/tv:/tv
-      - $STORAGEDIR/downloads:/downloads
+      - $MEDIADIR/tv:/tv
+      - $DOCKERDIR/transmission/downloads:/downloads
     ports:
       - 8989:8989
     <<: *common-keys # See EXTENSION FIELDS at the top
@@ -225,8 +225,8 @@ services:
       <<: *default-tz-puid-pgid
     volumes:
       - $DOCKERDIR/radarr:/config
-      - $STORAGEDIR/media/movies:/movies
-      - $STORAGEDIR/downloads:/downloads
+      - $MEDIADIR/movies:/movies
+      - $DOCKERDIR/transmission/downloads:/downloads
     ports:
       - 7878:7878
     <<: *common-keys # See EXTENSION FIELDS at the top
