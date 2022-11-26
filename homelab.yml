@@ -21,6 +21,7 @@ version: '3.9'
 # $EUFY_USER
 # $EUFY_PASS
 # $LIBRESPEED_PASS
+# $PICOSHARE_PASS
 
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
@@ -48,6 +49,28 @@ x-common-keys-apps: &common-keys
 
 services:
 
+  ########################### Home Assistant
+  homeassistant:
+    container_name: homeassistant
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    volumes:
+      - $DOCKERDIR/homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    # networks:
+    #   - proxy
+    ports:
+      - 8123:8123
+    healthcheck:
+      test: "curl --connect-timeout 10 --silent -f http://127.0.0.1:8123/ || exit 1"
+      interval: 45s
+      timeout: 30s
+      retries: 3
+    # devices:
+    #  - /dev/ttyUSB0:/dev/ttyUSB0
+      
   ########################### Nginx Proxy Manager
   nginx-proxy-manager:
     image: 'jc21/nginx-proxy-manager:latest'
@@ -130,8 +153,8 @@ services:
     <<: *common-keys # See EXTENSION FIELDS at the top
     volumes:
       - $DOCKERDIR/node-red:/data
-    # ports:
-      # - 1880:1880
+    ports:
+      - 1880:1880
 
   ########################### Mosquitto
   mosquitto:
@@ -238,18 +261,34 @@ services:
     cap_add:
       - SYS_RAWIO
       - SYS_ADMIN #optional
-
+    environment:
+      # <<: *default-tz-puid-pgid
+      SCRUTINY_API_ENDPOINT: "https://scrutiny.local.szaszattila.com"
+      # SCRUTINY_WEB: "true"
+      SCRUTINY_COLLECTOR: "true"
     volumes:
       - $DOCKERDIR/scrutiny:/opt/scrutiny/config
       - $DOCKERDIR/influxdb/data:/opt/scrutiny/influxdb
       - /run/udev:/run/udev:ro
-    # ports:
-    #   - 8080:8080
+    ports:
+      - 8088:8080
     devices:
       - /dev/sda:/dev/sda
       - /dev/nvme0n1:/dev/nvme0n1
     <<: *common-keys # See EXTENSION FIELDS at the top
- 
+    
+  ########################### PicoShare
+  picoshare:
+    image: mtlynch/picoshare
+    environment:
+      - PORT=3001
+      - PS_SHARED_SECRET=$PICOSHARE_PASS
+    ports:
+      - 3001:3001
+    command: -db /data/store.db
+    volumes:
+      - $DOCKERDIR/picoshare:/data
+      
 ######################### NETWORKS
 networks:
   proxy:
