@@ -1,26 +1,23 @@
 version: '3.9'
 
-## VARIABLES
-# $USER
-# $TZ
-# $PUID
-# $PGID
-# $USERDIR
-# $DOCKERDIR
-# $MEDIADIR
+## VARIABLES - Make sure you create these in Portainer as environment variables, or in a file named ".env" next to the docker-compose file
+# $USER --- Linux user
+# $TZ --- Timezone. Example: "Europe/Bucharest"
+# $PUID --- Value of uid from the linux "id" command. Usually 1000
+# $PGID --- Value of gid from the linux "id" command. Usually 1000
+# $USERDIR --- Home dir of $USER
+# $DOCKERDIR --- Where you want to map your Docker volumes
+# $MEDIADIR --- Where you want to map your media folders
 
-# $DOMAINNAME
 # $OPENVPN_PROVIDER
 # $OPENVPN_USERNAME
 # $OPENVPN_PASSWORD
+
 # $CLOUDFLARE_EMAIL
-# $CLOUDFLARE_API_KEY
-# $CLOUDFLARE_API_KEY
-# $BASIC_AUTH_USER
-# $BASIC_AUTH_PASS
-# $EUFY_USER
-# $EUFY_PASS
+# $CLOUDFLARE_API_TOKEN
+
 # $LIBRESPEED_PASS
+
 # $PICOSHARE_PASS
 
 ########################### EXTENSION FIELDS
@@ -52,15 +49,13 @@ services:
   ########################### Home Assistant
   homeassistant:
     container_name: homeassistant
-    image: "ghcr.io/home-assistant/home-assistant:stable"
+    image: ghcr.io/home-assistant/home-assistant:stable
     volumes:
       - $DOCKERDIR/homeassistant:/config
       - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
     privileged: true
     network_mode: host
-    # networks:
-    #   - proxy
     ports:
       - 8123:8123
     healthcheck:
@@ -68,20 +63,20 @@ services:
       interval: 45s
       timeout: 30s
       retries: 3
-    # devices:
-    #  - /dev/ttyUSB0:/dev/ttyUSB0
+    devices:
+     - /dev/ttyUSB0:/dev/ttyUSB0
       
   ########################### Nginx Proxy Manager
   nginx-proxy-manager:
-    image: 'jc21/nginx-proxy-manager:latest'
+    image: jc21/nginx-proxy-manager:latest
     container_name: nginx-proxy-manager
     <<: *common-keys # See EXTENSION FIELDS at the top
     restart: unless-stopped
     ports:
       # These ports are in format <host-port>:<container-port>
-      - '80:80' # Public HTTP Port
-      - '443:443' # Public HTTPS Port
-      - '81:81' # Admin Web Port
+      - 80:80
+      - 443:443
+      - 81:81
     volumes:
       - $DOCKERDIR/npm/data:/data
       - $DOCKERDIR/npm/letsencrypt:/etc/letsencrypt
@@ -109,18 +104,17 @@ services:
     environment:
       WATCHTOWER_CLEANUP: "true"
       WATCHTOWER_POLL_INTERVAL: 7200 # checks for updates every two hours
-
-  ########################### Heimdall  
-  heimdall:
-    image: ghcr.io/linuxserver/heimdall
-    container_name: heimdall
-    environment:
-      <<: *default-tz-puid-pgid
-    volumes:
-      - $DOCKERDIR/heimdall:/config
+  
+  ########################### Homepage
+  homepage:
+    image: ghcr.io/benphelps/homepage:latest
+    container_name: homepage
     ports:
-      - 8500:80
-      # - 8600:443
+      - 3000:3000
+    volumes:
+      - $DOCKERDIR/homepage:/app/config
+      - $DOCKERDIR/homepage/icons:/app/public/icons      
+      - /var/run/docker.sock:/var/run/docker.sock
     <<: *common-keys # See EXTENSION FIELDS at the top
 
   ########################### LibreSpeed
@@ -135,6 +129,7 @@ services:
     ports:
       - 8383:80
     restart: unless-stopped
+    <<: *common-keys # See EXTENSION FIELDS at the top
     
   ########################### Dozzle
   dozzle:
@@ -142,8 +137,8 @@ services:
     image: amir20/dozzle:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    # ports:
-    #   - 9999:8080
+    ports:
+      - 9999:8080
     <<: *common-keys # See EXTENSION FIELDS at the top
 
 
@@ -175,10 +170,12 @@ services:
     cap_add:
         - NET_ADMIN
     volumes:
-        - '$DOCKERDIR/transmission/data:/data'
-        - '$DOCKERDIR/transmission/config:/config'
-        - '$DOCKERDIR/transmission/downloads/:/data/completed'
-        - '$DOCKERDIR/transmission/downloads/:/downloads'
+        - $DOCKERDIR/transmission/data:/data
+        - $DOCKERDIR/transmission/config:/config
+        - $DOCKERDIR/transmission/downloads/:/data/completed
+        - $DOCKERDIR/transmission/downloads/:/downloads
+    ports:
+      - 9091:9091
     environment:
       <<: *default-tz-puid-pgid
       OPENVPN_PROVIDER: $OPENVPN_PROVIDER
@@ -283,6 +280,7 @@ services:
   ########################### PicoShare
   picoshare:
     image: mtlynch/picoshare
+    container_name: picoshare
     environment:
       - PORT=3001
       - PS_SHARED_SECRET=$PICOSHARE_PASS
@@ -291,8 +289,10 @@ services:
     command: -db /data/store.db
     volumes:
       - $DOCKERDIR/picoshare:/data
+    <<: *common-keys # See EXTENSION FIELDS at the top
       
 ######################### NETWORKS
+# Create this network before deploying the services, either in Portainer or with a docker command 
 networks:
   proxy:
     external: true
