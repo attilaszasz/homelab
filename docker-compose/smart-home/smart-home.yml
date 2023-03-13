@@ -1,0 +1,73 @@
+version: '3.9'
+
+## VARIABLES - Make sure you create these in Portainer as environment variables, or in a file named ".env" next to the docker-compose file
+# $USER --- Linux user
+# $TZ --- Timezone. Example: "Europe/Bucharest"
+# $PUID --- Value of uid from the linux "id" command. Usually 1000
+# $PGID --- Value of gid from the linux "id" command. Usually 1000
+# $USERDIR --- Home dir of $USER
+# $DOCKERDIR --- Where you want to map your Docker volumes
+
+########################### EXTENSION FIELDS
+# Helps eliminate repetition of sections
+
+# Keys common to some of the dependent services/apps
+# Create the network beforehand, as bridge
+x-common-keys-apps: &common-keys
+  networks:
+    - smart
+  security_opt:
+    - no-new-privileges:true
+  restart: unless-stopped
+
+  
+######################### SERVICES
+
+services:
+
+  ########################### Home Assistant
+  homeassistant:
+    container_name: homeassistant
+    image: ghcr.io/home-assistant/home-assistant:stable
+    volumes:
+      - $DOCKERDIR/homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    ports:
+      - 8123:8123
+    healthcheck:
+      test: "curl --connect-timeout 10 --silent -f http://127.0.0.1:8123/ || exit 1"
+      interval: 45s
+      timeout: 30s
+      retries: 3
+    devices:
+     - /dev/ttyUSB0:/dev/ttyUSB0
+
+  ########################### Node Red
+  node-red:
+    image: nodered/node-red:latest
+    container_name: nodered
+    environment:
+      - TZ=$TZ
+    <<: *common-keys # See EXTENSION FIELDS at the top
+    volumes:
+      - $DOCKERDIR/node-red:/data
+    ports:
+      - 1880:1880
+
+  ########################### Mosquitto
+  mosquitto:
+    container_name: mosquitto
+    image: eclipse-mosquitto:latest
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - $DOCKERDIR/mosquitto/:/mosquitto/
+     
+######################### NETWORKS
+# Create this network before deploying the services, either in Portainer or with a docker command 
+networks:
+  smart:
+    external: true

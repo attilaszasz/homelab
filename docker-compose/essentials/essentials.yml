@@ -1,0 +1,55 @@
+version: '3.9'
+
+########################### EXTENSION FIELDS
+# Helps eliminate repetition of sections
+
+# Keys common to some of the dependent services/apps
+# Create the network beforehand, as bridge
+x-common-keys-apps: &common-keys
+  networks:
+    - andromeda
+  security_opt:
+    - no-new-privileges:true
+  restart: unless-stopped
+
+######################### SERVICES
+services: 
+
+  ########################### AUTOHEAL
+  autoheal:
+    image: willfarrell/autoheal:latest
+    tty: true
+    container_name: autoheal
+    <<: *common-keys
+    restart: always
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  ########################### WatchTower
+  watchtower:
+    container_name: watchtower
+    <<: *common-keys
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_POLL_INTERVAL: 7200 # checks for updates every two hours
+
+  ########################### Dozzle
+  dozzle:
+    container_name: dozzle
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 9999:8080
+    <<: *common-keys     
+
+######################### NETWORKS
+# Create this network before deploying the services, either in Portainer or with a docker command 
+networks:
+  andromeda:
+    external: true

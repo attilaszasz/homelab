@@ -1,0 +1,147 @@
+version: '3.9'
+
+## VARIABLES - Make sure you create these in Portainer as environment variables, or in a file named ".env" next to the docker-compose file
+# $USER --- Linux user
+# $TZ --- Timezone. Example: "Europe/Bucharest"
+# $PUID --- Value of uid from the linux "id" command. Usually 1000
+# $PGID --- Value of gid from the linux "id" command. Usually 1000
+# $DOCKERDIR --- Where you want to map your Docker volumes
+# $MEDIADIR --- Where you want to map your media folders
+# $DOWNLOADSDIR --- The download folder
+
+# $OPENVPN_PROVIDER
+# $OPENVPN_USERNAME
+# $OPENVPN_PASSWORD
+
+
+
+########################### EXTENSION FIELDS
+# Helps eliminate repetition of sections
+
+# Common environment values
+x-environment: &default-tz-puid-pgid
+  TZ: $TZ
+  PUID: $PUID
+  PGID: $PGID
+
+# Keys common to some of the dependent services/apps
+# Create the network beforehand, as bridge
+x-common-keys-apps: &common-keys
+  networks:
+    - arr
+  security_opt:
+    - no-new-privileges:true
+  restart: unless-stopped
+
+######################### SERVICES
+services: 
+
+  ########################### Transmission OpenVPN
+  transmission-openvpn:
+    container_name: transmission
+    cap_add:
+        - NET_ADMIN
+    volumes:
+        - $DOCKERDIR/transmission/data:/data
+        - $DOCKERDIR/transmission/config:/config
+        - $DOWNLOADSDIR:/data/completed
+        - $DOWNLOADSDIR:/downloads
+    ports:
+      - 9091:9091
+    environment:
+      <<: *default-tz-puid-pgid
+      OPENVPN_PROVIDER: $OPENVPN_PROVIDER
+      OPENVPN_USERNAME: $OPENVPN_USERNAME
+      OPENVPN_PASSWORD: $OPENVPN_PASSWORD
+      NORDVPN_COUNTRY: RO
+      NORDVPN_CATEGORY: Europe
+      NORDVPN_PROTOCOL: tcp
+      LOCAL_NETWORK: 192.168.0.0/16
+      TRANSMISSION_HOME: /config/transmission-home
+      TRANSMISSION_DOWNLOAD_DIR: /downloads
+      TRANSMISSION_WATCH_DIR: /data/watch
+      TRANSMISSION_INCOMPLETE_DIR: /downloads/incomplete
+      TRANSMISSION_RATIO_LIMIT_ENABLED: "true"
+      TRANSMISSION_RATIO_LIMIT: 1
+      TRANSMISSION_IDLE_SEEDING_LIMIT_ENABLED: "true"
+      TRANSMISSION_IDLE_SEEDING_LIMIT: 1
+    logging:
+        driver: json-file
+        options:
+            max-size: 10m
+    <<: *common-keys # See EXTENSION FIELDS at the top
+    image: haugene/transmission-openvpn
+
+  ########################### Prowlarr
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:develop
+    container_name: prowlarr
+    environment:
+      <<: *default-tz-puid-pgid
+    volumes:
+      - $DOCKERDIR/prowlarr:/config
+    ports:
+      - 9696:9696
+    <<: *common-keys # See EXTENSION FIELDS at the top
+
+  ########################### Jackett
+  jackett:
+    image: lscr.io/linuxserver/jackett
+    container_name: jackett
+    environment:
+      <<: *default-tz-puid-pgid
+    volumes:
+      - $DOCKERDIR/jackett:/config
+      - $DOWNLOADSDIR:/downloads
+    ports:
+      - 9117:9117
+    <<: *common-keys # See EXTENSION FIELDS at the top
+    
+  ########################### Bazarr
+  bazarr:
+    image: ghcr.io/linuxserver/bazarr
+    container_name: bazarr
+    environment:
+      <<: *default-tz-puid-pgid
+    volumes:
+      - $DOCKERDIR/bazarr:/config
+      - $MEDIADIR/movies:/movies
+      - $MEDIADIR/tv:/tv
+    ports:
+      - 6767:6767
+    <<: *common-keys # See EXTENSION FIELDS at the top
+
+  ########################### Sonarr
+  sonarr:
+    image: ghcr.io/linuxserver/sonarr
+    container_name: sonarr
+    environment:
+      <<: *default-tz-puid-pgid
+    volumes:
+      - $DOCKERDIR/sonarr:/config
+      - $MEDIADIR/tv:/tv
+      - $DOWNLOADSDIR:/downloads
+    ports:
+      - 8989:8989
+    <<: *common-keys # See EXTENSION FIELDS at the top
+
+  ########################### Radarr
+  radarr:
+    image: ghcr.io/linuxserver/radarr
+    container_name: radarr
+    environment:
+      <<: *default-tz-puid-pgid
+    volumes:
+      - $DOCKERDIR/radarr:/config
+      - $MEDIADIR/movies:/movies
+      - $DOWNLOADSDIR:/downloads
+    ports:
+      - 7878:7878
+    <<: *common-keys # See EXTENSION FIELDS at the top
+
+
+######################### NETWORKS
+# Create this network before deploying the services, either in Portainer or with a docker command 
+networks:
+  arr:
+    external: true

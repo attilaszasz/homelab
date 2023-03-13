@@ -1,0 +1,100 @@
+version: '3.9'
+
+## VARIABLES - Make sure you create these in Portainer as environment variables, or in a file named ".env" next to the docker-compose file
+# $USER --- Linux user
+# $TZ --- Timezone. Example: "Europe/Bucharest"
+# $PUID --- Value of uid from the linux "id" command. Usually 1000
+# $PGID --- Value of gid from the linux "id" command. Usually 1000
+# $DOCKERDIR --- Where you want to map your Docker volumes
+# $LIBRESPEED_PASS
+# $PICOSHARE_PASS
+
+########################### EXTENSION FIELDS
+# Helps eliminate repetition of sections
+
+# Common environment values
+x-environment: &default-tz-puid-pgid
+  TZ: $TZ
+  PUID: $PUID
+  PGID: $PGID
+
+# Keys common to some of the dependent services/apps
+# Create the network beforehand, as bridge
+x-common-keys-apps: &common-keys
+  networks:
+    - andromeda
+  security_opt:
+    - no-new-privileges:true
+  restart: unless-stopped
+
+######################### SERVICES
+services: 
+
+  ########################### Homepage
+  homepage:
+    image: ghcr.io/benphelps/homepage:latest
+    container_name: homepage
+    ports:
+      - 3000:3000
+    volumes:
+      - $DOCKERDIR/homepage:/app/config
+      - $DOCKERDIR/homepage/icons:/app/public/icons      
+      - /var/run/docker.sock:/var/run/docker.sock
+    <<: *common-keys
+
+  ########################### LibreSpeed
+  librespeed:
+    image: linuxserver/librespeed
+    container_name: librespeed
+    environment:
+      <<: *default-tz-puid-pgid
+      PASSWORD: $LIBRESPEED_PASS
+    volumes:
+      - $DOCKERDIR/librespeed:/config
+    ports:
+      - 8383:80
+    restart: unless-stopped
+    <<: *common-keys   
+
+  ########################### PicoShare
+  picoshare:
+    image: mtlynch/picoshare
+    container_name: picoshare
+    environment:
+      - PORT=3001
+      - PS_SHARED_SECRET=$PICOSHARE_PASS
+    ports:
+      - 3001:3001
+    command: -db /data/store.db
+    volumes:
+      - $DOCKERDIR/picoshare:/data
+    <<: *common-keys
+
+  ########################### Scrutiny
+  scrutiny:
+    image: ghcr.io/analogj/scrutiny:master-omnibus
+    container_name: scrutiny
+    cap_add:
+      - SYS_RAWIO
+      - SYS_ADMIN #optional
+    environment:
+      # <<: *default-tz-puid-pgid
+      SCRUTINY_API_ENDPOINT: "https://scrutiny.local.szaszattila.com"
+      # SCRUTINY_WEB: "true"
+      SCRUTINY_COLLECTOR: "true"
+    volumes:
+      - $DOCKERDIR/scrutiny:/opt/scrutiny/config
+      - $DOCKERDIR/influxdb/data:/opt/scrutiny/influxdb
+      - /run/udev:/run/udev:ro
+    ports:
+      - 8088:8080
+    devices:
+      - /dev/sda:/dev/sda
+      - /dev/nvme0n1:/dev/nvme0n1
+    <<: *common-keys # See EXTENSION FIELDS at the top
+    
+######################### NETWORKS
+# Create this network before deploying the services, either in Portainer or with a docker command 
+networks:
+  andromeda:
+    external: true
