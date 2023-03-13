@@ -1,0 +1,74 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/en/configs/bookmarks
+
+- Utils:
+    - Keeper:
+        - icon: /icons/keeper.png
+          href: https://keepersecurity.com/vault/
+    - ChatGPT:
+        - icon: openai
+          href: https://chat.openai.com/chat
+    - Cloudflare Dashboard:
+        - icon: cloudflare
+          href: https://dash.cloudflare.com
+    - Cloudflare Zero Trust:
+        - icon: cloudflare-zero-trust
+          href: https://one.dash.cloudflare.com
+    - Digital Ocean:
+        - icon: digital-ocean
+          href: https://cloud.digitalocean.com/droplets
+    - RunZero:
+        - icon: /icons/fm-runzero.png
+          href: https://console.runzero.com/
+
+- Shopping:
+    - Olx:
+        - icon: /icons/olx.png
+          href: https://www.olx.ro/
+    - Emag:
+        - icon: /icons/emag.png
+          href: https://www.emag.ro/
+    - Amazon DE:
+        - icon: amazon
+          href: https://www.amazon.de/
+    - Amazon US:
+        - icon: amazon
+          href: https://www.amazon.com/
+
+- News & Social:
+    - Feedly:
+        - icon: /icons/feedly.png
+          href: https://feedly.com/
+    - Reddit:
+        - icon: reddit
+          href: https://reddit.com/
+    - Linkedin:
+        - abbr: LI
+          href: https://www.linkedin.com
+    - Facebook:
+        - icon: facebook
+          href: https://www.facebook.com
+    - Instagram:
+        - icon: instagram
+          href: https://www.instagram.com
+
+- Multimedia:
+    - YouTube:
+        - icon: youtube-play
+          href: https://youtube.com/
+    - Google Photos:
+        - icon: google-photos
+          href: https://photos.google.com
+    - Spotify:
+        - icon: spotify
+          href: https://open.spotify.com/
+    - Netflix:
+        - icon: nitter
+          href: https://www.netflix.com/
+    - HBO Max:
+        - abbr: HM
+          href: https://play.hbomax.com/
+    - Disney+:
+        - abbr: DI
+          href: https://www.disneyplus.com/

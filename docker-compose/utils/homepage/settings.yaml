@@ -1,0 +1,22 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/en/configs/settings
+
+title: Szász Attila
+
+providers:
+  openweathermap: openweathermapapikey
+  weatherapi: weatherapiapikey
+
+headerStyle: boxed
+
+layout:
+  Smart Home:
+    style: row
+    columns: 3
+  Multimedia:
+    style: row
+    columns: 4
+  Homelab:
+    style: row
+    columns: 3    

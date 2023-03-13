@@ -1,0 +1,83 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/en/configs/services
+
+- Homelab:
+    - Home Assistant:
+        href: https://ha.szaszattila.com/
+        icon: home-assistant-circle
+        ping: http://192.168.0.100:8123
+    - Synology:
+        href: https://synny.szaszattila.com
+        icon: synology-dsm
+        ping: http://192.168.0.16:5000
+    - Proxmox:
+        href: https://proxmox.szaszattila.com
+        icon: proxmox
+        ping: https://192.168.0.25:8006
+    - Andromeda:
+        href: https://andromeda.szaszattila.com
+        icon: cockpit
+        ping: https://192.168.0.101:9090
+    - Portainer:
+        href: https://portainer.szaszattila.com
+        icon: portainer
+        server: my-docker
+        container: portainer
+    - PicoShare:
+        href: https://picoshare.szaszattila.com
+        icon: /icons/picoshare.png
+        server: my-docker
+        container: picoshare
+    - Pi-hole 1:
+        href: http://pi1.hole:8080/admin/
+        icon: pihole
+        ping: http://pi1.hole:8080/admin/
+    - Pi-hole 2:
+        href: http://pi2.hole/admin/
+        icon: pihole
+        ping: http://pi2.hole/admin
+    - Uptime Robot:
+        href: https://uptimerobot.com/dashboard.php
+        icon: /icons/Uptimerobot-logo.webp
+        ping: https://uptimerobot.com/dashboard.php
+    - Dozzle:
+        href: http://192.168.0.101:9999
+        icon: dozzle
+        server: my-docker
+        container: dozzle
+
+- Multimedia:
+    - Transmission:
+        href: http://192.168.0.101:9091
+        icon: transmission
+        server: my-docker
+        container: transmission
+        widget:
+            type: transmission
+            url: http://192.168.0.101:9091
+    - Plex:
+        href: https://192.168.0.101:32400
+        icon: plex
+        widget:
+            type: plex
+            url: http://192.168.0.101:32400
+            key: <plex-token> # see https://www.plexopedia.com/plex-media-server/general/plex-token/        
+    - Radarr:
+        href: http://192.168.0.101:7878
+        icon: radarr
+        server: my-docker
+        container: radarr
+        widget:
+            type: radarr
+            url: http://192.168.0.101:7878
+            key: <api-key>
+    - Sonarr:
+        href: http://192.168.0.101:8989
+        icon: sonarr
+        server: my-docker
+        container: sonarr
+        widget:
+            type: sonarr
+            url: http://192.168.0.101:8989
+            key: <api-key>

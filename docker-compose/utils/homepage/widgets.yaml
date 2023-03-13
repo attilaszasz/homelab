@@ -1,0 +1,17 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/en/configs/widgets
+
+- openweathermap:
+    latitude: 46.542679
+    longitude: 24.557859
+    units: metric # or imperial
+    apiKey: <your-api-key>
+    cache: 15 # Time in minutes to cache API responses, to stay within limits
+
+- resources:
+    cpu: true
+    memory: true
+    disk: /
+
+
