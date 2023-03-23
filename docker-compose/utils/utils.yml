@@ -2,12 +2,15 @@ version: '3.9'
 
 ## VARIABLES - Make sure you create these in Portainer as environment variables, or in a file named ".env" next to the docker-compose file
 # $USER --- Linux user
+# $USERDIR
 # $TZ --- Timezone. Example: "Europe/Bucharest"
 # $PUID --- Value of uid from the linux "id" command. Usually 1000
 # $PGID --- Value of gid from the linux "id" command. Usually 1000
 # $DOCKERDIR --- Where you want to map your Docker volumes
 # $LIBRESPEED_PASS
 # $PICOSHARE_PASS
+# $PIHOLE_PASS
+# $VSCODE_URL
 
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
@@ -22,13 +25,56 @@ x-environment: &default-tz-puid-pgid
 # Create the network beforehand, as bridge
 x-common-keys-apps: &common-keys
   networks:
-    - andromeda
+    - utils
   security_opt:
     - no-new-privileges:true
   restart: unless-stopped
 
 ######################### SERVICES
 services: 
+
+  ########################### VSCODE
+  vscode:
+    image: lscr.io/linuxserver/code-server:latest
+    container_name: vscode
+    environment:
+      <<: *default-tz-puid-pgid
+      PASSWORD: $VSCODE_PASS
+      SUDO_PASSWORD: $VSCODE_ROOT_PASS
+      PROXY_DOMAIN: $VSCODE_URL
+      DEFAULT_WORKSPACE: $USERDIR
+    volumes:
+      - $DOCKERDIR/vscode/config:/config
+      - $USERDIR:$USERDIR
+    ports:
+      - 8443:8443
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  
+    <<: *common-keys
+
+  ########################### PIHOLE
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    networks:
+      - utils
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp" # Only required if you are using Pi-hole as your DHCP server
+      - "81:80/tcp"
+    environment:
+      TZ: $TZ
+      WEBPASSWORD: $PIHOLE_PASS
+    volumes:
+      - $DOCKERDIR/pihole/data:/etc/pihole
+      - $DOCKERDIR/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+    cap_add:
+      - NET_ADMIN
+      - SETUID
+      - SETGID
+    restart: unless-stopped
+
 
   ########################### Homepage
   homepage:
@@ -79,7 +125,7 @@ services:
       - SYS_ADMIN #optional
     environment:
       # <<: *default-tz-puid-pgid
-      SCRUTINY_API_ENDPOINT: "https://scrutiny.local.szaszattila.com"
+      SCRUTINY_API_ENDPOINT: "http://127.0.0.1:8080"
       # SCRUTINY_WEB: "true"
       SCRUTINY_COLLECTOR: "true"
     volumes:
@@ -96,5 +142,5 @@ services:
 ######################### NETWORKS
 # Create this network before deploying the services, either in Portainer or with a docker command 
 networks:
-  andromeda:
+  utils:
     external: true

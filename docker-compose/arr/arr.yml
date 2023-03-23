@@ -7,7 +7,8 @@ version: '3.9'
 # $PGID --- Value of gid from the linux "id" command. Usually 1000
 # $DOCKERDIR --- Where you want to map your Docker volumes
 # $MEDIADIR --- Where you want to map your media folders
-# $DOWNLOADSDIR --- The download folder
+# $DOWNLOADSDIR --- The download folder on the host
+# $MOUNTED_DOWNLOADSDIR --- The download folder in the containers. Usually "/downloads"
 
 # $OPENVPN_PROVIDER
 # $OPENVPN_USERNAME
@@ -36,42 +37,52 @@ x-common-keys-apps: &common-keys
 ######################### SERVICES
 services: 
 
-  ########################### Transmission OpenVPN
-  transmission-openvpn:
-    container_name: transmission
+  ########################### GlueTun
+  gluetun:
+    image: ghcr.io/qdm12/gluetun
+    container_name: gluetun
     cap_add:
-        - NET_ADMIN
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
     volumes:
-        - $DOCKERDIR/transmission/data:/data
-        - $DOCKERDIR/transmission/config:/config
-        - $DOWNLOADSDIR:/data/completed
-        - $DOWNLOADSDIR:/downloads
+      - $DOCKERDIR/gluetun:/gluetun
     ports:
-      - 9091:9091
+      - 8080:8080      # qBittorrent 
+    environment:
+      TZ: $TZ
+      # Wireguard
+      # VPN_SERVICE_PROVIDER: surfshark
+      # VPN_TYPE: wireguard
+      # WIREGUARD_PRIVATE_KEY: $SURFSHARK_WG_PRIVATE_KEY
+      # WIREGUARD_ADDRESSES: 10.14.0.2/16
+      # SERVER_COUNTRIES: be2
+      SERVER_HOSTNAMES: be148.nordvpn.com
+      # OpenVPN
+      VPN_SERVICE_PROVIDER: nordvpn
+      VPN_TYPE: openvpn
+      OPENVPN_USER: $OPENVPN_USERNAME
+      OPENVPN_PASSWORD: $OPENVPN_PASSWORD 
+    <<: *common-keys # See EXTENSION FIELDS at the top
+
+  ########################### QBittorrent
+  qbittorrent:
+    <<: *common-keys
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    network_mode: "service:gluetun"
+    volumes:
+      - $DOCKERDIR/qbittorrent:/config
+      - $DOWNLOADSDIR:$MOUNTED_DOWNLOADSDIR
     environment:
       <<: *default-tz-puid-pgid
-      OPENVPN_PROVIDER: $OPENVPN_PROVIDER
-      OPENVPN_USERNAME: $OPENVPN_USERNAME
-      OPENVPN_PASSWORD: $OPENVPN_PASSWORD
-      NORDVPN_COUNTRY: RO
-      NORDVPN_CATEGORY: Europe
-      NORDVPN_PROTOCOL: tcp
-      LOCAL_NETWORK: 192.168.0.0/16
-      TRANSMISSION_HOME: /config/transmission-home
-      TRANSMISSION_DOWNLOAD_DIR: /downloads
-      TRANSMISSION_WATCH_DIR: /data/watch
-      TRANSMISSION_INCOMPLETE_DIR: /downloads/incomplete
-      TRANSMISSION_RATIO_LIMIT_ENABLED: "true"
-      TRANSMISSION_RATIO_LIMIT: 1
-      TRANSMISSION_IDLE_SEEDING_LIMIT_ENABLED: "true"
-      TRANSMISSION_IDLE_SEEDING_LIMIT: 1
-    logging:
-        driver: json-file
-        options:
-            max-size: 10m
-    <<: *common-keys # See EXTENSION FIELDS at the top
-    image: haugene/transmission-openvpn
-
+      UMASK_SET: 002
+    healthcheck: # https://github.com/qdm12/gluetun/issues/641#issuecomment-933856220
+      test: "curl -sf https://example.com  || exit 1"
+      interval: 1m
+      timeout: 10s
+      retries: 1
+      
   ########################### Prowlarr
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:develop
@@ -82,6 +93,11 @@ services:
       - $DOCKERDIR/prowlarr:/config
     ports:
       - 9696:9696
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "-S", "--max-time", "2", "http://localhost:9696"]
+      interval: 30s
+      timeout: 10s
+      retries: 5        
     <<: *common-keys # See EXTENSION FIELDS at the top
 
   ########################### Jackett
@@ -92,9 +108,14 @@ services:
       <<: *default-tz-puid-pgid
     volumes:
       - $DOCKERDIR/jackett:/config
-      - $DOWNLOADSDIR:/downloads
+      - $DOWNLOADSDIR:$MOUNTED_DOWNLOADSDIR
     ports:
       - 9117:9117
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "-S", "--max-time", "2", "http://localhost:9117"]
+      interval: 30s
+      timeout: 10s
+      retries: 5        
     <<: *common-keys # See EXTENSION FIELDS at the top
     
   ########################### Bazarr
@@ -109,6 +130,11 @@ services:
       - $MEDIADIR/tv:/tv
     ports:
       - 6767:6767
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "-S", "--max-time", "2", "http://localhost:6767"]
+      interval: 30s
+      timeout: 10s
+      retries: 5        
     <<: *common-keys # See EXTENSION FIELDS at the top
 
   ########################### Sonarr
@@ -120,9 +146,14 @@ services:
     volumes:
       - $DOCKERDIR/sonarr:/config
       - $MEDIADIR/tv:/tv
-      - $DOWNLOADSDIR:/downloads
+      - $DOWNLOADSDIR:$MOUNTED_DOWNLOADSDIR
     ports:
       - 8989:8989
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "-S", "--max-time", "2", "http://localhost:8989"]
+      interval: 30s
+      timeout: 10s
+      retries: 5        
     <<: *common-keys # See EXTENSION FIELDS at the top
 
   ########################### Radarr
@@ -134,9 +165,14 @@ services:
     volumes:
       - $DOCKERDIR/radarr:/config
       - $MEDIADIR/movies:/movies
-      - $DOWNLOADSDIR:/downloads
+      - $DOWNLOADSDIR:$MOUNTED_DOWNLOADSDIR
     ports:
       - 7878:7878
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "-S", "--max-time", "2", "http://localhost:7878"]
+      interval: 30s
+      timeout: 10s
+      retries: 5      
     <<: *common-keys # See EXTENSION FIELDS at the top
 
 

@@ -46,14 +46,14 @@ services:
      - /dev/ttyUSB0:/dev/ttyUSB0
 
   ########################### Node Red
-  node-red:
+  nodered:
     image: nodered/node-red:latest
     container_name: nodered
     environment:
       - TZ=$TZ
     <<: *common-keys # See EXTENSION FIELDS at the top
     volumes:
-      - $DOCKERDIR/node-red:/data
+      - $DOCKERDIR/nodered:/data
     ports:
       - 1880:1880
 

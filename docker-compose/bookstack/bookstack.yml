@@ -1,0 +1,71 @@
+version: '3.9'
+
+## VARIABLES - Make sure you create these in Portainer as environment variables, or in a file named ".env" next to the docker-compose file
+# $USER --- Linux user
+# $TZ --- Timezone. Example: "Europe/Bucharest"
+# $PUID --- Value of uid from the linux "id" command. Usually 1000
+# $PGID --- Value of gid from the linux "id" command. Usually 1000
+# $DOCKERDIR --- Where you want to map your Docker volumes
+# $BOOKSTACK_URL
+# $DB_PASS
+
+########################### EXTENSION FIELDS
+# Helps eliminate repetition of sections
+
+# Common environment values
+x-environment: &default-tz-puid-pgid
+  TZ: $TZ
+  PUID: $PUID
+  PGID: $PGID
+
+# Keys common to some of the dependent services/apps
+# Create the network beforehand, as bridge
+x-common-keys-apps: &common-keys
+  networks:
+    - bookstack
+  security_opt:
+    - no-new-privileges:true
+  restart: unless-stopped
+
+######################### SERVICES
+services: 
+
+  ########################### Bookstack
+  bookstack:
+    image: lscr.io/linuxserver/bookstack
+    container_name: bookstack
+    environment:
+      <<: *default-tz-puid-pgid
+      APP_URL: $BOOKSTACK_URL
+      DB_HOST: bookstack_db
+      DB_PORT: 3306
+      DB_USER: bookstack
+      DB_PASS: $DB_PASS
+      DB_DATABASE: bookstackapp
+    volumes:
+      - $DOCKERDIR/bookstack/config:/config
+    ports:
+      - 6875:80
+    <<: *common-keys
+    depends_on:
+      - bookstack_db
+
+  ########################### Database
+  bookstack_db:
+    image: lscr.io/linuxserver/mariadb
+    container_name: bookstack_db
+    environment:
+      <<: *default-tz-puid-pgid
+      MYSQL_ROOT_PASSWORD: $DB_PASS
+      MYSQL_DATABASE: bookstackapp
+      MYSQL_USER: bookstack
+      MYSQL_PASSWORD: $DB_PASS
+    volumes:
+      - $DOCKERDIR/bookstack/data:/config
+    <<: *common-keys
+
+######################### NETWORKS
+# Create this network before deploying the services, either in Portainer or with a docker command 
+networks:
+  bookstack:
+    external: true
