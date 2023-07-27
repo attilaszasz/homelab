@@ -1,11 +1,10 @@
 version: '3.9'
 
 ## VARIABLES - Make sure you create these in Portainer as environment variables, or in a file named ".env" next to the docker-compose file
-# $USER --- Linux user
+
 # $TZ --- Timezone. Example: "Europe/Bucharest"
 # $PUID --- Value of uid from the linux "id" command. Usually 1000
 # $PGID --- Value of gid from the linux "id" command. Usually 1000
-# $USERDIR --- Home dir of $USER
 # $DOCKERDIR --- Where you want to map your Docker volumes
 
 ########################### EXTENSION FIELDS
@@ -51,21 +50,14 @@ services:
     container_name: nodered
     environment:
       - TZ=$TZ
-    <<: *common-keys # See EXTENSION FIELDS at the top
+    <<: *common-keys
     volumes:
       - $DOCKERDIR/nodered:/data
     ports:
       - 1880:1880
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  
 
-  ########################### Mosquitto
-  mosquitto:
-    container_name: mosquitto
-    image: eclipse-mosquitto:latest
-    restart: unless-stopped
-    network_mode: host
-    volumes:
-      - $DOCKERDIR/mosquitto/:/mosquitto/
-     
 ######################### NETWORKS
 # Create this network before deploying the services, either in Portainer or with a docker command 
 networks:

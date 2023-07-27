@@ -2,15 +2,12 @@ version: '3.9'
 
 ## VARIABLES - Make sure you create these in Portainer as environment variables, or in a file named ".env" next to the docker-compose file
 # $USER --- Linux user
-# $USERDIR
 # $TZ --- Timezone. Example: "Europe/Bucharest"
 # $PUID --- Value of uid from the linux "id" command. Usually 1000
 # $PGID --- Value of gid from the linux "id" command. Usually 1000
 # $DOCKERDIR --- Where you want to map your Docker volumes
 # $LIBRESPEED_PASS
 # $PICOSHARE_PASS
-# $PIHOLE_PASS
-# $VSCODE_URL
 
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
@@ -47,9 +44,9 @@ services:
       - $DOCKERDIR/vscode/config:/config
       - $USERDIR:$USERDIR
     ports:
-      - 8443:8443
+      - 7443:8443
     extra_hosts:
-      - "host.docker.internal:host-gateway"  
+      - "host.docker.internal:host-gateway"       
     <<: *common-keys
 
   ########################### PIHOLE
@@ -66,6 +63,7 @@ services:
     environment:
       TZ: $TZ
       WEBPASSWORD: $PIHOLE_PASS
+
     volumes:
       - $DOCKERDIR/pihole/data:/etc/pihole
       - $DOCKERDIR/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
@@ -74,8 +72,7 @@ services:
       - SETUID
       - SETGID
     restart: unless-stopped
-
-
+    
   ########################### Homepage
   homepage:
     image: ghcr.io/benphelps/homepage:latest
@@ -84,7 +81,8 @@ services:
       - 3000:3000
     volumes:
       - $DOCKERDIR/homepage:/app/config
-      - $DOCKERDIR/homepage/icons:/app/public/icons      
+      - $DOCKERDIR/homepage/icons:/app/public/icons
+      - /mnt/storage:/mnt/storage
       - /var/run/docker.sock:/var/run/docker.sock
     <<: *common-keys
 
@@ -139,8 +137,42 @@ services:
       - /dev/nvme0n1:/dev/nvme0n1
     <<: *common-keys # See EXTENSION FIELDS at the top
     
+  ########################### HomeBox
+  homebox:
+    image: ghcr.io/hay-kot/homebox:latest
+    container_name: homebox
+    environment:
+    - HBOX_LOG_LEVEL=info
+    - HBOX_LOG_FORMAT=text
+    - HBOX_WEB_MAX_UPLOAD_SIZE=10
+    - HBOX_OPTIONS_ALLOW_REGISTRATION=false
+    volumes:
+      - homebox-data:/data/
+    ports:
+      - 3100:7745
+    <<: *common-keys # See EXTENSION FIELDS at the top
+    
+  ########################### HomeBox
+  filebrowser:
+    image: filebrowser/filebrowser:s6
+    container_name: filebrowser
+    environment:
+      <<: *default-tz-puid-pgid
+    volumes:
+      - $DOCKERDIR/filebrowser:/config
+      - $STORAGEDRIVE:/data/media
+      - $USERDIR:/data/home
+    ports:
+      - 88:80
+    <<: *common-keys # See EXTENSION FIELDS at the top
+    
 ######################### NETWORKS
 # Create this network before deploying the services, either in Portainer or with a docker command 
 networks:
   utils:
     external: true
+    
+######################### VOLUMES
+volumes:
+   homebox-data:
+     driver: local

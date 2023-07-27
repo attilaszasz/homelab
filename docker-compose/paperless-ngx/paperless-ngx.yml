@@ -102,9 +102,9 @@ services:
       # NOTE: Romanian is "ron", NOT "rom"
       PAPERLESS_OCR_LANGUAGE: ron
       PAPERLESS_URL: https://paperless.szaszattila.com
-      PAPERLESS_ADMIN_USER: admin
-      PAPERLESS_ADMIN_MAIL: admin@example.com
-      PAPERLESS_ADMIN_PASSWORD: admin
+      PAPERLESS_ADMIN_USER: $PAPERLESS_ADMIN_USER
+      PAPERLESS_ADMIN_MAIL: $PAPERLESS_ADMIN_MAIL
+      PAPERLESS_ADMIN_PASSWORD: $PAPERLESS_ADMIN_PASSWORD
       PAPERLESS_CONSUMER_POLLING: 60
       PAPERLESS_FILENAME_FORMAT: "{title}"
     <<: *common-keys # See EXTENSION FIELDS at the top

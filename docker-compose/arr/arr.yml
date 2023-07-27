@@ -37,51 +37,40 @@ x-common-keys-apps: &common-keys
 ######################### SERVICES
 services: 
 
-  ########################### GlueTun
-  gluetun:
-    image: ghcr.io/qdm12/gluetun
-    container_name: gluetun
+  ########################### Transmission OpenVPN
+  transmission-openvpn:
+    container_name: transmission
     cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun
-    volumes:
-      - $DOCKERDIR/gluetun:/gluetun
+        - NET_ADMIN
     ports:
-      - 8080:8080      # qBittorrent 
-    environment:
-      TZ: $TZ
-      # Wireguard
-      # VPN_SERVICE_PROVIDER: surfshark
-      # VPN_TYPE: wireguard
-      # WIREGUARD_PRIVATE_KEY: $SURFSHARK_WG_PRIVATE_KEY
-      # WIREGUARD_ADDRESSES: 10.14.0.2/16
-      # SERVER_COUNTRIES: be2
-      SERVER_HOSTNAMES: be148.nordvpn.com
-      # OpenVPN
-      VPN_SERVICE_PROVIDER: nordvpn
-      VPN_TYPE: openvpn
-      OPENVPN_USER: $OPENVPN_USERNAME
-      OPENVPN_PASSWORD: $OPENVPN_PASSWORD 
-    <<: *common-keys # See EXTENSION FIELDS at the top
-
-  ########################### QBittorrent
-  qbittorrent:
-    <<: *common-keys
-    image: lscr.io/linuxserver/qbittorrent:latest
-    container_name: qbittorrent
-    network_mode: "service:gluetun"
+        - 9091:9091
     volumes:
-      - $DOCKERDIR/qbittorrent:/config
-      - $DOWNLOADSDIR:$MOUNTED_DOWNLOADSDIR
+        - $DOCKERDIR/transmission/:/data
+        - $DOWNLOADSDIR:/data/completed
+        - $DOWNLOADSDIR:$MOUNTED_DOWNLOADSDIR
     environment:
       <<: *default-tz-puid-pgid
-      UMASK_SET: 002
-    healthcheck: # https://github.com/qdm12/gluetun/issues/641#issuecomment-933856220
-      test: "curl -sf https://example.com  || exit 1"
-      interval: 1m
-      timeout: 10s
-      retries: 1
+      OPENVPN_PROVIDER: $OPENVPN_PROVIDER
+      OPENVPN_USERNAME: $OPENVPN_USERNAME
+      OPENVPN_PASSWORD: $OPENVPN_PASSWORD
+      NORDVPN_COUNTRY: NL
+      NORDVPN_CATEGORY: Europe
+      NORDVPN_PROTOCOL: tcp
+      LOCAL_NETWORK: 192.168.0.0/16
+      TRANSMISSION_HOME: /data/transmission-home
+      TRANSMISSION_DOWNLOAD_DIR: $MOUNTED_DOWNLOADSDIR
+      TRANSMISSION_WATCH_DIR: /data/watch
+      TRANSMISSION_INCOMPLETE_DIR: $MOUNTED_DOWNLOADSDIR/incomplete
+      TRANSMISSION_RATIO_LIMIT_ENABLED: "true"
+      TRANSMISSION_RATIO_LIMIT: 1
+      TRANSMISSION_IDLE_SEEDING_LIMIT_ENABLED: "true"
+      TRANSMISSION_IDLE_SEEDING_LIMIT: 1
+    logging:
+        driver: json-file
+        options:
+            max-size: 10m
+    <<: *common-keys # See EXTENSION FIELDS at the top
+    image: haugene/transmission-openvpn:edge
       
   ########################### Prowlarr
   prowlarr:

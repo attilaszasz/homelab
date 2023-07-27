@@ -1,7 +1,6 @@
 version: '3.9'
 
 ## VARIABLES - Make sure you create these in Portainer as environment variables, or in a file named ".env" next to the docker-compose file
-# $USER --- Linux user
 # $TZ --- Timezone. Example: "Europe/Bucharest"
 # $PUID --- Value of uid from the linux "id" command. Usually 1000
 # $PGID --- Value of gid from the linux "id" command. Usually 1000
