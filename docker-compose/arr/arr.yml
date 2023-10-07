@@ -29,13 +29,13 @@ x-environment: &default-tz-puid-pgid
 # Create the network beforehand, as bridge
 x-common-keys-apps: &common-keys
   networks:
-    - arr
+    - synny
   security_opt:
     - no-new-privileges:true
   restart: unless-stopped
 
 ######################### SERVICES
-services: 
+services:
 
   ########################### Transmission OpenVPN
   transmission-openvpn:
@@ -70,8 +70,9 @@ services:
         options:
             max-size: 10m
     <<: *common-keys # See EXTENSION FIELDS at the top
-    image: haugene/transmission-openvpn:edge
-      
+    image: haugene/transmission-openvpn
+
+
   ########################### Prowlarr
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:develop
@@ -89,24 +90,6 @@ services:
       retries: 5        
     <<: *common-keys # See EXTENSION FIELDS at the top
 
-  ########################### Jackett
-  jackett:
-    image: lscr.io/linuxserver/jackett
-    container_name: jackett
-    environment:
-      <<: *default-tz-puid-pgid
-    volumes:
-      - $DOCKERDIR/jackett:/config
-      - $DOWNLOADSDIR:$MOUNTED_DOWNLOADSDIR
-    ports:
-      - 9117:9117
-    healthcheck:
-      test: ["CMD", "curl", "-fs", "-S", "--max-time", "2", "http://localhost:9117"]
-      interval: 30s
-      timeout: 10s
-      retries: 5        
-    <<: *common-keys # See EXTENSION FIELDS at the top
-    
   ########################### Bazarr
   bazarr:
     image: ghcr.io/linuxserver/bazarr
@@ -115,8 +98,8 @@ services:
       <<: *default-tz-puid-pgid
     volumes:
       - $DOCKERDIR/bazarr:/config
-      - $MEDIADIR/movies:/movies
-      - $MEDIADIR/tv:/tv
+      - $MEDIADIR/Movies:/movies
+      - $MEDIADIR/Tv:/tv
     ports:
       - 6767:6767
     healthcheck:
@@ -134,7 +117,7 @@ services:
       <<: *default-tz-puid-pgid
     volumes:
       - $DOCKERDIR/readarr:/config
-      - $MEDIADIR/books:/books
+      - $MEDIADIR/Books:/books
       - $DOWNLOADSDIR:$MOUNTED_DOWNLOADSDIR
     ports:
       - 8787:8787
@@ -144,7 +127,7 @@ services:
       timeout: 10s
       retries: 5        
     <<: *common-keys # See EXTENSION FIELDS at the top
-    
+
   ########################### Sonarr
   sonarr:
     image: ghcr.io/linuxserver/sonarr
@@ -153,7 +136,7 @@ services:
       <<: *default-tz-puid-pgid
     volumes:
       - $DOCKERDIR/sonarr:/config
-      - $MEDIADIR/tv:/tv
+      - $MEDIADIR/Tv:/tv
       - $DOWNLOADSDIR:$MOUNTED_DOWNLOADSDIR
     ports:
       - 8989:8989
@@ -172,7 +155,7 @@ services:
       <<: *default-tz-puid-pgid
     volumes:
       - $DOCKERDIR/radarr:/config
-      - $MEDIADIR/movies:/movies
+      - $MEDIADIR/Movies:/movies
       - $DOWNLOADSDIR:$MOUNTED_DOWNLOADSDIR
     ports:
       - 7878:7878
@@ -182,10 +165,9 @@ services:
       timeout: 10s
       retries: 5      
     <<: *common-keys # See EXTENSION FIELDS at the top
-
-
+    
 ######################### NETWORKS
 # Create this network before deploying the services, either in Portainer or with a docker command 
 networks:
-  arr:
+  synny:
     external: true

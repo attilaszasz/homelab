@@ -7,7 +7,7 @@ version: '3.9'
 # Create the network beforehand, as bridge
 x-common-keys-apps: &common-keys
   networks:
-    - essentials
+    - synny
   security_opt:
     - no-new-privileges:true
   restart: unless-stopped
@@ -36,20 +36,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       WATCHTOWER_CLEANUP: "true"
-      WATCHTOWER_POLL_INTERVAL: 7200 # checks for updates every two hours
-
-  ########################### Dozzle
-  dozzle:
-    container_name: dozzle
-    image: amir20/dozzle:latest
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - 9999:8080
-    <<: *common-keys     
+      WATCHTOWER_POLL_INTERVAL: 14400 # checks for updates every four hours
 
 ######################### NETWORKS
 # Create this network before deploying the services, either in Portainer or with a docker command 
 networks:
-  essentials:
+  synny:
     external: true

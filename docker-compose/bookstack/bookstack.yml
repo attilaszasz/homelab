@@ -21,7 +21,7 @@ x-environment: &default-tz-puid-pgid
 # Create the network beforehand, as bridge
 x-common-keys-apps: &common-keys
   networks:
-    - bookstack
+    - synny
   security_opt:
     - no-new-privileges:true
   restart: unless-stopped
@@ -66,5 +66,5 @@ services:
 ######################### NETWORKS
 # Create this network before deploying the services, either in Portainer or with a docker command 
 networks:
-  bookstack:
+  synny:
     external: true

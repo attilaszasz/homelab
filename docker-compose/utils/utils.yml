@@ -22,7 +22,7 @@ x-environment: &default-tz-puid-pgid
 # Create the network beforehand, as bridge
 x-common-keys-apps: &common-keys
   networks:
-    - utils
+    - synny
   security_opt:
     - no-new-privileges:true
   restart: unless-stopped
@@ -30,31 +30,26 @@ x-common-keys-apps: &common-keys
 ######################### SERVICES
 services: 
 
-  ########################### VSCODE
-  vscode:
-    image: lscr.io/linuxserver/code-server:latest
-    container_name: vscode
+  ########################### GUACAMOLE
+  guacamole:
+    image: flcontainers/guacamole
+    container_name: guacamole
     environment:
       <<: *default-tz-puid-pgid
-      PASSWORD: $VSCODE_PASS
-      SUDO_PASSWORD: $VSCODE_ROOT_PASS
-      PROXY_DOMAIN: $VSCODE_URL
-      DEFAULT_WORKSPACE: $USERDIR
+      EXTENSIONS: 'auth-totp'
     volumes:
-      - $DOCKERDIR/vscode/config:/config
-      - $USERDIR:$USERDIR
+      - postgres:/config
+      - /etc/localtime:/etc/localtime:ro
     ports:
-      - 7443:8443
-    extra_hosts:
-      - "host.docker.internal:host-gateway"       
+      - 8080:8080
     <<: *common-keys
-
+    
   ########################### PIHOLE
   pihole:
     container_name: pihole
     image: pihole/pihole:latest
     networks:
-      - utils
+      - synny
     ports:
       - "53:53/tcp"
       - "53:53/udp"
@@ -63,7 +58,6 @@ services:
     environment:
       TZ: $TZ
       WEBPASSWORD: $PIHOLE_PASS
-
     volumes:
       - $DOCKERDIR/pihole/data:/etc/pihole
       - $DOCKERDIR/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
@@ -75,14 +69,13 @@ services:
     
   ########################### Homepage
   homepage:
-    image: ghcr.io/benphelps/homepage:latest
+    image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
     ports:
       - 3000:3000
     volumes:
       - $DOCKERDIR/homepage:/app/config
       - $DOCKERDIR/homepage/icons:/app/public/icons
-      - /mnt/storage:/mnt/storage
       - /var/run/docker.sock:/var/run/docker.sock
     <<: *common-keys
 
@@ -114,29 +107,6 @@ services:
       - $DOCKERDIR/picoshare:/data
     <<: *common-keys
 
-  ########################### Scrutiny
-  scrutiny:
-    image: ghcr.io/analogj/scrutiny:master-omnibus
-    container_name: scrutiny
-    cap_add:
-      - SYS_RAWIO
-      - SYS_ADMIN #optional
-    environment:
-      # <<: *default-tz-puid-pgid
-      SCRUTINY_API_ENDPOINT: "http://127.0.0.1:8080"
-      # SCRUTINY_WEB: "true"
-      SCRUTINY_COLLECTOR: "true"
-    volumes:
-      - $DOCKERDIR/scrutiny:/opt/scrutiny/config
-      - $DOCKERDIR/influxdb/data:/opt/scrutiny/influxdb
-      - /run/udev:/run/udev:ro
-    ports:
-      - 8088:8080
-    devices:
-      - /dev/sda:/dev/sda
-      - /dev/nvme0n1:/dev/nvme0n1
-    <<: *common-keys # See EXTENSION FIELDS at the top
-    
   ########################### HomeBox
   homebox:
     image: ghcr.io/hay-kot/homebox:latest
@@ -152,27 +122,15 @@ services:
       - 3100:7745
     <<: *common-keys # See EXTENSION FIELDS at the top
     
-  ########################### FileBrowser
-  filebrowser:
-    image: filebrowser/filebrowser:s6
-    container_name: filebrowser
-    environment:
-      <<: *default-tz-puid-pgid
-    volumes:
-      - $DOCKERDIR/filebrowser:/config
-      - $STORAGEDRIVE:/data/media
-      - $USERDIR:/data/home
-    ports:
-      - 88:80
-    <<: *common-keys # See EXTENSION FIELDS at the top
-    
 ######################### NETWORKS
 # Create this network before deploying the services, either in Portainer or with a docker command 
 networks:
-  utils:
+  synny:
     external: true
     
 ######################### VOLUMES
 volumes:
    homebox-data:
      driver: local
+   postgres:
+     driver: local     
