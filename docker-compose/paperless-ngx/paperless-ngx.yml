@@ -13,6 +13,7 @@ version: '3.9'
 # $PAPERLESS_MEDIADIR
 # $PAPERLESS_CONSUMEDIR
 # $PAPERLESS_SECRET_KEY
+# $PAPERLESS_FILENAME_FORMAT
 
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
@@ -27,7 +28,7 @@ x-environment: &default-tz-puid-pgid
 # Create the network beforehand, as bridge
 x-common-keys-apps: &common-keys
   networks:
-    - paperless
+    - synny
   security_opt:
     - no-new-privileges:true
   restart: unless-stopped
@@ -106,8 +107,8 @@ services:
       PAPERLESS_ADMIN_MAIL: $PAPERLESS_ADMIN_MAIL
       PAPERLESS_ADMIN_PASSWORD: $PAPERLESS_ADMIN_PASSWORD
       PAPERLESS_CONSUMER_POLLING: 60
-      PAPERLESS_FILENAME_FORMAT: "{title}"
-    <<: *common-keys # See EXTENSION FIELDS at the top
+      PAPERLESS_FILENAME_FORMAT: $PAPERLESS_FILENAME_FORMAT
+    <<: *common-keys # See EXTENSION FIELDS at the top    
 
 ######################### VOLUMES
 volumes:
@@ -119,5 +120,5 @@ volumes:
 ######################### NETWORKS
 # Create this network before deploying the services, either in Portainer or with a docker command 
 networks:
-  paperless:
+  synny:
     external: true
