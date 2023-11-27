@@ -8,6 +8,7 @@ version: '3.9'
 # $DOCKERDIR --- Where you want to map your Docker volumes
 # $LIBRESPEED_PASS
 # $PICOSHARE_PASS
+# $GOTIFY_DEFAULTUSER_PASS
 
 ########################### EXTENSION FIELDS
 # Helps eliminate repetition of sections
@@ -120,6 +121,18 @@ services:
       - homebox-data:/data/
     ports:
       - 3100:7745
+    <<: *common-keys # See EXTENSION FIELDS at the top
+
+  ########################### Gotify
+  gotify:
+    image: gotify/server
+    container_name: gotify
+    ports:
+      - 8081:80
+    environment:
+      - GOTIFY_DEFAULTUSER_PASS=$GOTIFY_DEFAULTUSER_PASS
+    volumes:
+      - $DOCKERDIR/gotify:/app/data
     <<: *common-keys # See EXTENSION FIELDS at the top
     
 ######################### NETWORKS
