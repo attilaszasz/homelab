@@ -19,8 +19,14 @@ winget install -e --id Postman.Postman
 winget install -e --id Zoom.Zoom.EXE
 winget install -e --id wagoodman.dive
 winget install -e --id Ollama.Ollama
-winget install -e --id Python.Python.3.12
+winget install -e --id Python.Python.3.12  # check if newer version exists and change here
+winget install -e --id Anaconda.Miniconda3
 winget install -e --id Microsoft.VisualStudioCode
+winget install -e --id Ghisler.TotalCommander
+winget install -e --id Microsoft.Sysinternals.Autoruns
+winget install -e --id CPUID.HWMonitor
+winget install -e --id CPUID.CPU-Z
+winget install -e --id Balena.Etcher
 ```
 
 To update everything all at once, run in an elevated command window:
