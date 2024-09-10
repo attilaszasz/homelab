@@ -27,6 +27,9 @@ winget install -e --id Microsoft.Sysinternals.Autoruns
 winget install -e --id CPUID.HWMonitor
 winget install -e --id CPUID.CPU-Z
 winget install -e --id Balena.Etcher
+winget install -e --id Kubernetes.kubectl
+winget install -e --id Docker.DockerCLI
+winget install -e --id Docker.DockerCompose
 ```
 
 To update everything all at once, run in an elevated command window:
