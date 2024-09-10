@@ -1,6 +1,6 @@
-# install Oh-My-Posh first with this winget command: 
-# winget install JanDeDobbeleer.OhMyPosh
-oh-my-posh init pwsh | Invoke-Expression
+# install Starship first with this winget command: 
+# winget install Starship.Starship
+Invoke-Expression (&starship init powershell)
 
 
 # This function uses GitHub Copilot to suggest shell commands based on the input command.
