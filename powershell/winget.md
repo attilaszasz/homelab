@@ -30,6 +30,7 @@ winget install -e --id Balena.Etcher
 winget install -e --id Kubernetes.kubectl
 winget install -e --id Docker.DockerCLI
 winget install -e --id Docker.DockerCompose
+winget install -e --id MintplexLabs.AnythingLLM
 ```
 
 To update everything all at once, run in an elevated command window:
