@@ -31,6 +31,13 @@ winget install -e --id Kubernetes.kubectl
 winget install -e --id Docker.DockerCLI
 winget install -e --id Docker.DockerCompose
 winget install -e --id MintplexLabs.AnythingLLM
+winget install -e --id PuTTY.PuTTY
+winget install -e --id OpenJS.NodeJS.LTS
+winget install -e --id Microsoft.SQLServerManagementStudio
+winget install -e --id Hashicorp.Terraform
+winget install -e --id Atlassian.Sourcetree
+winget install -e --id SlackTechnologies.Slack
+winget install -e --id Microsoft.Azure.StorageExplorer
 ```
 
 To update everything all at once, run in an elevated command window:
