@@ -38,6 +38,9 @@ winget install -e --id Hashicorp.Terraform
 winget install -e --id Atlassian.Sourcetree
 winget install -e --id SlackTechnologies.Slack
 winget install -e --id Microsoft.Azure.StorageExplorer
+winget install -e --id Microsoft.DotNet.SDK.8
+winget install -e --id Microsoft.DotNet.SDK.9
+winget install -e --id NSSM.NSSM
 ```
 
 To update everything all at once, run in an elevated command window:
