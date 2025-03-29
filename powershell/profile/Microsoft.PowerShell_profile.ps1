@@ -4,6 +4,7 @@ Invoke-Expression (&starship init powershell)
 
 
 # This function uses GitHub Copilot to suggest shell commands based on the input command.
+# The extension needs to be installed: https://docs.github.com/en/copilot/managing-copilot/configure-personal-settings/installing-github-copilot-in-the-cli
 function GitHub_Suggest_Shell($cmd) {
     # The 'gh copilot suggest' command is used with the '-t shell' option to specify the type of suggestion.
     gh copilot suggest -t shell $cmd
